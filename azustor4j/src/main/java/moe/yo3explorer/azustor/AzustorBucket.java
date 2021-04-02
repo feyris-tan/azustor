@@ -572,4 +572,17 @@ public class AzustorBucket implements Closeable, AutoCloseable{
     }
 
     ///</editor-fold>
+
+
+    public UUID getSerialNumber() {
+        return serialNumber;
+    }
+
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public int getCreatorVersion() {
+        return creatorVersion;
+    }
 }
