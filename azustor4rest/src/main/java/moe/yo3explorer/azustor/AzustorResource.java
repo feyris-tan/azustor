@@ -83,12 +83,14 @@ public class AzustorResource {
     @POST
     public Response uploadFile(@NotNull byte[] buffer, @NotNull @Context UriInfo uriInfo)
     {
-        logger.infof("Uploading %d bytes",buffer.length);
         UUID uuid = bucket.storeFile(buffer);
+        logger.infof("Uploaded %d bytes as %s",buffer.length,uuid.toString());
 
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         uriBuilder.path(uuid.toString());
-        return Response.created(uriBuilder.build()).build();
+        return Response.created(uriBuilder.build())
+                .header("X-Azustor-UUID",uuid.toString())
+                .build();
     }
 
     @GET
