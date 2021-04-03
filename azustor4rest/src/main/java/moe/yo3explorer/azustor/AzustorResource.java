@@ -43,7 +43,9 @@ public class AzustorResource {
         String properties = String.format(" (%s memory mode,volume size = %d) ",lowMemoryMode ? "low" : "hi",volumeSize);
 
         File file = new File(outputDirectoy);
-        if (file.isDirectory())
+        File masterfile = new File(file.getAbsolutePath() + File.separator + "master.cnf");
+        logger.info("Looking for " + masterfile.getAbsolutePath());
+        if (masterfile.isFile())
         {
             logger.infof("Loading existing store%sfrom: %s ",properties,file.getAbsolutePath());
             bucket = AzustorBucket.loadBucket(file,lowMemoryMode);
