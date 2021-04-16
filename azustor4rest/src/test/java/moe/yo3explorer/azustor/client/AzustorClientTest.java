@@ -11,6 +11,9 @@ import javax.ws.rs.core.Response;
 import java.util.Random;
 import java.util.UUID;
 
+/**
+ * This is a QuarkusTest that shows how to communicate with the AzustorResource
+ */
 @QuarkusTest
 public class AzustorClientTest {
 
@@ -21,6 +24,9 @@ public class AzustorClientTest {
     @Inject
     Logger logger;
 
+    /**
+     * This method gets executed in order to run the test.
+     */
     @Test
     public void testIt()
     {

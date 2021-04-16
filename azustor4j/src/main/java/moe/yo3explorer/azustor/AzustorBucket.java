@@ -13,6 +13,9 @@ import java.util.UUID;
 
 import static java.nio.file.StandardOpenOption.*;
 
+/**
+ * This is where all of Azustor's operations take place.
+ */
 public class AzustorBucket implements Closeable, AutoCloseable{
     private AzustorBucket() {}
 
@@ -29,6 +32,13 @@ public class AzustorBucket implements Closeable, AutoCloseable{
     private HighMemoryObject[][][][][][][][][][][][][][][][] highMemoryObjects;
     private boolean closed;
 
+    /**
+     * This creates a new Azustor bucket and initalizes an Azustor instance.
+     * @param targetDirectory The directory in which the bucket is supposed to be created.
+     * @param volumeTargetSize Maximum number of bytes in a volume. You should adjust this so that one or more volumes fit onto a backup medium. For example 680355840 fits a single volume file onto a CD-R, and 6 of them onto a DVD-R.
+     * @param lowMemoryMode If set to true, Azustor will scan the full bucket each time an object is requested.
+     * @return An Azustor instance doing I/O in the specified directory.
+     */
     @NotNull
     public static AzustorBucket createBucket(@NotNull File targetDirectory, long volumeTargetSize, boolean lowMemoryMode)
     {
@@ -58,6 +68,12 @@ public class AzustorBucket implements Closeable, AutoCloseable{
         return loadBucket(targetDirectory,lowMemoryMode);
     }
 
+    /**
+     * This loads an existing Azustor bucket and initializes an Azustor instance.
+     * @param targetDirectory The directory from which the bucket shall be loaded from.
+     * @param lowMemoryMode If set to true, Azustor will scan the full bucket each time an object is requested.
+     * @return An Azustor instance doing I/O in the specified directory.
+     */
     @NotNull
     public static AzustorBucket loadBucket(@NotNull File targetDirectory, boolean lowMemoryMode)
     {
@@ -133,6 +149,11 @@ public class AzustorBucket implements Closeable, AutoCloseable{
         }
     }
 
+    /**
+     * Saves an object into the bucket.
+     * @param buffer The object to be saved.
+     * @return An UUID to load up this object at a later time.
+     */
     public UUID storeFile(byte[] buffer)
     {
         if (closed)
@@ -144,6 +165,11 @@ public class AzustorBucket implements Closeable, AutoCloseable{
             return storeFileHighMemory(buffer);
     }
 
+    /**
+     * Loads an object from the bucket.
+     * @param uuid The UUID of the object to be loaded.
+     * @return The object as a byte array, or null if the object is not present in the bucket.
+     */
     public byte[] retrieveFile(UUID uuid)
     {
         if (closed)
@@ -561,6 +587,10 @@ public class AzustorBucket implements Closeable, AutoCloseable{
         }
     }
 
+    /**
+     * Closes the bucket. After calling this method, all I/O methods on this bucket will fail.
+     * @throws IOException Won't be thrown, but the Closeable interface requires this.
+     */
     @Override
     public void close() throws IOException {
         closed = true;
@@ -573,15 +603,26 @@ public class AzustorBucket implements Closeable, AutoCloseable{
 
     ///</editor-fold>
 
-
+    /**
+     * Gets the serial number of this bucket. This does not correspond with an object in the bucket.
+     * @return An Unique number for this bucket.
+     */
     public UUID getSerialNumber() {
         return serialNumber;
     }
 
+    /**
+     * Gets the point in time this bucket was first created.
+     * @return Point in time this bucket was created.
+     */
     public Date getDateCreated() {
         return dateCreated;
     }
 
+    /**
+     * Gets the Azustor version that created this bucket.
+     * @return The Azustor version that created this bucket.
+     */
     public int getCreatorVersion() {
         return creatorVersion;
     }

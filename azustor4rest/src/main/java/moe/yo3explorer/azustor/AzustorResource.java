@@ -17,6 +17,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * This class contains the Resources for the RESTful service.
+ */
 @Singleton
 @Path("/")
 public class AzustorResource {
@@ -35,6 +38,9 @@ public class AzustorResource {
 
     private AzustorBucket bucket;
 
+    /**
+     * This method is automatically called by Quarkus once this object gets instanciated. It creates or opens the bucket.
+     */
     @PostConstruct
     public void postConstruct()
     {
@@ -57,6 +63,9 @@ public class AzustorResource {
         }
     }
 
+    /**
+     * This method is automatically called by Quarkus when it shuts down.
+     */
     @PreDestroy
     public void onShutdown()
     {
@@ -68,6 +77,10 @@ public class AzustorResource {
         }
     }
 
+    /**
+     * Clients cann call this method to get information about the bucket.
+     * @return A JSON-Object with metadata of the Bucket.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response info()
@@ -82,6 +95,12 @@ public class AzustorResource {
         return Response.ok(objectBuilder.build()).build();
     }
 
+    /**
+     * Clients can call this method to put an object into the bucket.
+     * @param buffer The object to be uplaoded.
+     * @param uriInfo This data gets automatically filled in by Quarkus.
+     * @return 201 when the upload is sucessful, 500 when not.
+     */
     @POST
     public Response uploadFile(@NotNull byte[] buffer, @NotNull @Context UriInfo uriInfo)
     {
@@ -95,6 +114,11 @@ public class AzustorResource {
                 .build();
     }
 
+    /**
+     * Retrieves an object from the bucket.
+     * @param uuid The UUID of the object to look for.
+     * @return 200 if the object was found, 404 if not.
+     */
     @GET
     @Path("/{uuid}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)

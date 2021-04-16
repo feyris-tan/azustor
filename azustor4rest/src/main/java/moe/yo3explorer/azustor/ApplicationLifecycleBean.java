@@ -8,6 +8,9 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.json.JsonObject;
 
+/**
+ * This class is responsible for creating the bucket when the RESTful service starts up.
+ */
 @ApplicationScoped
 public class ApplicationLifecycleBean {
     @Inject
