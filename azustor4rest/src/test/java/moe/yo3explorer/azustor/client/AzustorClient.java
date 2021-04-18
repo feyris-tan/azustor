@@ -1,5 +1,6 @@
 package moe.yo3explorer.azustor.client;
 
+import moe.yo3explorer.azustor.AzustorServerInfo;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jetbrains.annotations.NotNull;
 

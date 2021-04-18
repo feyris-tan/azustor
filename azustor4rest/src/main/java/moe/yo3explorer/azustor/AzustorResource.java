@@ -2,6 +2,13 @@ package moe.yo3explorer.azustor;
 
 import moe.yo3explorer.azustor.errormodel.ObjectNotFoundException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.headers.Header;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.jboss.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,6 +19,7 @@ import javax.inject.Singleton;
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 import javax.ws.rs.*;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.*;
 import java.io.File;
 import java.io.IOException;
@@ -83,16 +91,26 @@ public class AzustorResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response info()
+    @APIResponses(value = {
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Shows information about the bucket.",
+                    content = @Content(mediaType = "application/json",
+                                       schema = @Schema(implementation = AzustorServerInfo.class)
+                    )
+            )
+    })
+    @Operation(summary = "Retrieves information about the bucket.", description = "Displays information about the bucket.")
+    public AzustorServerInfo info()
     {
-        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        objectBuilder.add("creationTime",bucket.getDateCreated().getTime() / 1000);
-        objectBuilder.add("uuid",bucket.getSerialNumber().toString());
-        objectBuilder.add("currentTime",System.currentTimeMillis() / 1000);
-        objectBuilder.add("version",bucket.getCreatorVersion());
-        objectBuilder.add("pid","azustor");
+        AzustorServerInfo asi = new AzustorServerInfo();
+        asi.pid = "azustor";
+        asi.uuid = bucket.getSerialNumber().toString();
+        asi.currentTime = System.currentTimeMillis() / 1000;
+        asi.creationTime = bucket.getDateCreated().getTime() / 1000;
+        asi.creator_version = bucket.getCreatorVersion();
 
-        return Response.ok(objectBuilder.build()).build();
+        return asi;
     }
 
     /**
@@ -102,7 +120,21 @@ public class AzustorResource {
      * @return 201 when the upload is sucessful, 500 when not.
      */
     @POST
-    public Response uploadFile(@NotNull byte[] buffer, @NotNull @Context UriInfo uriInfo)
+    @APIResponses(value = {
+            @APIResponse(name = "Sucessful upload",
+                    responseCode = "201",
+                    headers = {
+                        @Header(name = "Location", description = "The URL where the uploaded object may be found."),
+                        @Header(name = "X-Azustor-UUID",description = "The UUID of the uploaded object. This UUID is also found in the Location.")
+                    }
+            ),
+            @APIResponse(name = "Upload failed",
+            description = "Writing to the bucket failed for whatever reason.",
+            responseCode = "500")
+    })
+    @Operation(summary = "Uploads an object",
+            description = "Assigns an UUID to an object and stores it into the bucket. The object must be put into the request body. See AzustorClient and README.md")
+    public Response uploadFile(@Parameter(description = "The object to be stored") @NotNull byte[] buffer, @NotNull @Context UriInfo uriInfo)
     {
         UUID uuid = bucket.storeFile(buffer);
         logger.infof("Uploaded %d bytes as %s",buffer.length,uuid.toString());
@@ -122,7 +154,26 @@ public class AzustorResource {
     @GET
     @Path("/{uuid}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFile(@NotNull @PathParam("uuid") UUID uuid)
+    @APIResponses(value = { @APIResponse(
+            name = "Object retrieved.",
+            description = "The object was sucessfully read from the bucket and may be found in the response body.",
+            responseCode = "200",
+            content = @Content(mediaType = "application/octet-stream")),
+        @APIResponse(
+                name = "Object not found",
+                description = "An object with the specified UUID was not found in the bucket.",
+                responseCode = "404"),
+        @APIResponse(
+                name = "I/O error",
+                description = "An I/O error occurred when scanning or reading the bucket.",
+                responseCode = "500")
+    })
+    public Response getFile(@Parameter(name = "uuid",
+            description = "The UUID of the object you want to retrieve. Can be found in the Location or X-Azustor-UUID headers when storing the object.",
+            required = true,
+            allowEmptyValue = false,
+            example = "244d99b6-d3c5-4935-9f56-77a5e8614e07"
+    ) @NotNull @PathParam("uuid") UUID uuid)
     {
         logger.info("Looking for " + uuid.toString());
         try {

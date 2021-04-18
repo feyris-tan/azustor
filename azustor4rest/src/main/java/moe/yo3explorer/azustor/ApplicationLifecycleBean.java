@@ -22,6 +22,6 @@ public class ApplicationLifecycleBean {
     void onStart(@Observes StartupEvent ev)
     {
         logger.info("The application is starting...");
-        azustorResource.info().readEntity(JsonObject.class);
+        azustorResource.info();
     }
 }
