@@ -33,6 +33,28 @@ public class AzustorBucket implements Closeable, AutoCloseable{
     private boolean closed;
 
     /**
+     * Creates or loads a bucket.
+     * If a bucket is detected in targetDirectory, this call is equivalent with loadBucket.
+     * If the targetDirectory is empty or does not exist, this call is equivalent with createBucket
+     * @param targetDirectory The target to load or create a bucket.
+     * @param volumeTargetSize If the bucket is to be created, the volume maximum size in bytes for each volume file
+     * @param lowMemoryMode If set to true, Azustor will scan the full bucket each time an operation is performed in the bucket.
+     * @return The created or loaded bucket.
+     */
+    public static AzustorBucket createOrLoadBucket(@NotNull File targetDirectory, long volumeTargetSize, boolean lowMemoryMode)
+    {
+        File masterfile = new File(targetDirectory.getAbsolutePath() + File.separator + "master.cnf");
+        if (masterfile.isFile())
+        {
+            return AzustorBucket.loadBucket(targetDirectory,lowMemoryMode);
+        }
+        else
+        {
+            return AzustorBucket.createBucket(targetDirectory,volumeTargetSize,lowMemoryMode);
+        }
+    }
+
+    /**
      * This creates a new Azustor bucket and initalizes an Azustor instance.
      * @param targetDirectory The directory in which the bucket is supposed to be created.
      * @param volumeTargetSize Maximum number of bytes in a volume. You should adjust this so that one or more volumes fit onto a backup medium. For example 680355840 fits a single volume file onto a CD-R, and 6 of them onto a DVD-R.

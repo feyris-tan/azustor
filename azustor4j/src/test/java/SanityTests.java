@@ -97,6 +97,18 @@ public class SanityTests {
         stressIt(outDirs2, random, uuidCollection,false);
     }
 
+    @Test
+    public void testCreateOrLoad() throws IOException {
+        String bname = String.format("bucket_%s",System.currentTimeMillis());
+        AzustorBucket myBucket = AzustorBucket.createOrLoadBucket(new File(bname), cdrom, false);
+        Random random = new Random();
+        UuidCollection uuidCollection = new UuidCollection();
+        stressIt(myBucket,random,uuidCollection);
+
+        myBucket = AzustorBucket.createOrLoadBucket(new File(bname), cdrom, false);
+        stressIt(myBucket,random,uuidCollection);
+    }
+
     private void stressIt(@NotNull File outDirs2, Random random, UuidCollection uuidCollection, boolean lowMemory) throws IOException {
         AzustorBucket azustorBucket;
         if (outDirs2.isDirectory())
@@ -104,6 +116,10 @@ public class SanityTests {
         else
             azustorBucket = AzustorBucket.createBucket(outDirs2,cdrom,lowMemory);
 
+        stressIt(azustorBucket,random,uuidCollection);
+    }
+
+    private void stressIt(AzustorBucket azustorBucket, Random random, UuidCollection uuidCollection) throws IOException {
         for (int i = 0; i < 1000; i++)
         {
             if (random.nextBoolean())
